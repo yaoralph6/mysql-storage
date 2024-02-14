@@ -36,7 +36,7 @@
     
             return res.status(StatusCodes.OK).json({ users });
         } catch (error) {
-            return res.status(StatusCodes.NOT_FOUND).json( [] );
+            return res.status(StatusCodes.NOT_FOUND).json( ["User not found"] );
         }
     });
 
