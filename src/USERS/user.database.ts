@@ -62,15 +62,33 @@ export const create = async (userData: UnitUser): Promise<UnitUser | null> => {
 
 };
 
+export const searchUsers = async (name: string, email: string): Promise<UnitUser[]> => {
+    const allUsers = await findAll();
+
+    const filteredUsers = allUsers.filter(user =>
+        (!name || user.username.toLowerCase().includes(name.toLowerCase())) &&
+        (!email || user.email.toLowerCase().includes(email.toLowerCase()))
+    );
+
+    if (filteredUsers.length === 0) {
+        throw new Error(); 
+    }
+
+    return filteredUsers;
+};
+/*
 export const findByName = async (user_name: string): Promise<UnitUser | null> => {
     const allUsers = await findAll();
 
-    const getUser = allUsers.find(result => result.username === user_name);
+    const getUser = allUsers.find(result => user_name === result.username);
 
-    return getUser || null;
+    if (!getUser) {
+        return null;
+    }
+
+    return getUser;
 };
-
-
+*/
 
 export const findbyEmail= async (user_email:string): Promise<UnitUser | null> => {
     const allUsers = await findAll();

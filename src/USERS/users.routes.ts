@@ -2,6 +2,7 @@
     import {UnitUser, User} from "./user.interface"
     import { StatusCodes } from "http-status-codes"
     import * as database from "./user.database"
+    import { searchUsers } from "./user.database";
     import { parseJsonSourceFileConfigFileContent } from "typescript"
 
     export const userRouter = express.Router()
@@ -25,24 +26,19 @@
         
     })
 
-    userRouter.get("/users/search", async (req : Request, res : Response) => {
-
+    userRouter.get("/users/search", async (req: Request, res: Response) => {
         try {
-            const allUsers : UnitUser[] = await database.findAll()
-
-            if(!allUsers) {
-                return res.status(StatusCodes.NOT_FOUND).json({msg : 'No users at this time..'})
-            }
-
-            return res.status(StatusCodes.OK).json({total_user : allUsers.length, allUsers})
+    
+            const name = req.query.name as string;
+            const email = req.query.email as string;
+    
+            const users = await searchUsers(name, email);
+    
+            return res.status(StatusCodes.OK).json({ users });
+        } catch (error) {
+            return res.status(StatusCodes.NOT_FOUND).json( [] );
         }
-        
-        catch (error) {
-            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({error})
-        }
-
-        
-    })
+    });
 
 
 
@@ -162,6 +158,8 @@
         }
     })
 
+    //Doesn't work for some reason, returns all users instead of specific ones
+    /* 
     userRouter.get("/users/search", async (req: Request, res: Response) => {
         try {
           const { name, email } = req.query;
@@ -189,4 +187,6 @@
           return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error });
         }
       });
+*/
       
+
