@@ -27,7 +27,28 @@ function saveUsers () {
 }
 
 export const findAll = async (): Promise<UnitUser[]> => Object.values(users);
+
 export const findOne = async (id:string): Promise<UnitUser> => users[id];
+
+export const search = async (): Promise<UnitUser[]> => Object.values(users);
+
+export const findbyEmail = async (user_email:string): Promise<UnitUser> => users[user_email]
+
+export const findbyEmail1 = async (user_email:string): Promise<UnitUser | null> => {
+    const allUsers = await findAll();
+
+    const getUser = allUsers.find(result => user_email === result.email);
+
+    if (!getUser) {
+        return null;
+    }
+
+    return getUser;
+
+};
+
+
+
 export const create = async (userData: UnitUser): Promise<UnitUser | null> => {
     let id = random()
 
@@ -58,18 +79,6 @@ export const create = async (userData: UnitUser): Promise<UnitUser | null> => {
 
 };
 
-export const findbyEmail = async (user_email:string): Promise<null | UnitUser> => {
-    const allUsers = await findAll();
-
-    const getUser = allUsers.find(result => user_email === result.email);
-
-    if (!getUser) {
-        return null;
-    }
-
-    return getUser;
-
-};
 
 export const comparePassword = async (email:string, supplied_password:string) : Promise<null | UnitUser> => {
     const user = await findbyEmail(email)
