@@ -8,7 +8,7 @@ import { PoolConnection, RowDataPacket } from "mysql2/promise";
 export const loadUsers = async (): Promise<Users> => {
     const conn: PoolConnection = await connection;
     try {
-        const [rows] = await conn.query('SELECT * FROM users') as [RowDataPacket[], any];
+        const [rows] = await conn.query('SELECT * FROM user') as [RowDataPacket[], any];
         if (!Array.isArray(rows)) return {};
         return rows.reduce((acc: Users, row: any) => {
             acc[row.id] = row;
@@ -23,7 +23,7 @@ export const loadUsers = async (): Promise<Users> => {
 export const saveUsers = async (users: Users): Promise<void> => {
     const conn: PoolConnection = await connection;
     try {
-        await conn.query('TRUNCATE TABLE users'); // Clear existing users
+        await conn.query('TRUNCATE TABLE user'); // Clear existing users
         const values = Object.values(users).map(user => [user.id, user.username, user.email, user.password]);
         await conn.query('INSERT INTO users (id, username, email, password) VALUES ?', [values]);
         console.log('Users saved successfully!');
@@ -34,14 +34,14 @@ export const saveUsers = async (users: Users): Promise<void> => {
 
 export const findAll = async (): Promise<UnitUser[]> => {
     const conn: PoolConnection = await connection;
-    const [rows] = await conn.query('SELECT * FROM users');
+    const [rows] = await conn.query('SELECT * FROM user');
     return rows as UnitUser[];
 };
 
 export const findOne = async (id:string): Promise<UnitUser | null> => {
     const conn: PoolConnection = await connection;
     try {
-        const [rows] = await conn.query('SELECT * FROM users WHERE id = ?', [id]) as [RowDataPacket[], any];
+        const [rows] = await conn.query('SELECT * FROM user WHERE id = ?', [id]) as [RowDataPacket[], any];
         if (!Array.isArray(rows)) return null;
         if (rows.length === 0) return null;
         return rows[0] as UnitUser;
@@ -54,7 +54,7 @@ export const findOne = async (id:string): Promise<UnitUser | null> => {
 export const search = async (): Promise<UnitUser[]> => {
     const conn: PoolConnection = await connection;
     try {
-        const [rows] = await conn.query('SELECT * FROM users') as [RowDataPacket[], any];
+        const [rows] = await conn.query('SELECT * FROM user') as [RowDataPacket[], any];
         if (!Array.isArray(rows)) return [];
         return rows as UnitUser[];
     } catch (error) {
@@ -79,7 +79,7 @@ export const create = async (userData: UnitUser): Promise<UnitUser | null> => {
 
 export const searchUsers = async (name: string, email: string): Promise<UnitUser[]> => {
     const conn: PoolConnection = await connection;
-    let query = 'SELECT * FROM users WHERE 1=1';
+    let query = 'SELECT * FROM user WHERE 1=1';
     const params: any[] = [];
     if (name) {
         query += ' AND username LIKE ?';
@@ -95,7 +95,7 @@ export const searchUsers = async (name: string, email: string): Promise<UnitUser
 
 export const findbyEmail= async (user_email:string): Promise<UnitUser | null> => {
     const conn: PoolConnection = await connection;
-    const [rows] = await conn.query('SELECT * FROM users WHERE email = ?', [user_email]) as [RowDataPacket[], any];;
+    const [rows] = await conn.query('SELECT * FROM user WHERE email = ?', [user_email]) as [RowDataPacket[], any];;
     if (rows.length === 0) return null;
     return rows[0] as UnitUser;
 };

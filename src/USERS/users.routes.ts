@@ -5,26 +5,22 @@
     import { searchUsers } from "./user.database";
     import { parseJsonSourceFileConfigFileContent } from "typescript"
 
-    export const userRouter = express.Router()
+    export const userRouter = express.Router();
 
-    userRouter.get("/users", async (req : Request, res : Response) => {
+userRouter.get("/users", async (req: Request, res: Response) => {
+    try {
+        const allUsers: UnitUser[] = await database.findAll();
 
-        try {
-            const allUsers : UnitUser[] = await database.findAll()
-
-            if(!allUsers) {
-                return res.status(StatusCodes.NOT_FOUND).json({msg : 'No users at this time..'})
-            }
-
-            return res.status(StatusCodes.OK).json({total_user : allUsers.length, allUsers})
-        }
-        
-        catch (error) {
-            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({error})
+        if (!allUsers || allUsers.length === 0) {
+            return res.status(StatusCodes.NOT_FOUND).json({ error: 'No users found' });
         }
 
-        
-    })
+        return res.status(StatusCodes.OK).json({ total_users: allUsers.length, users: allUsers });
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal server error' });
+    }
+});
 
     userRouter.get("/users/search", async (req: Request, res: Response) => {
         try {
@@ -42,22 +38,21 @@
 
 
 
-    userRouter.get("/user/:id", async (req : Request, res : Response) => {
-
+    userRouter.get("/user/:id", async (req: Request, res: Response) => {
         try {
-            const user : UnitUser = await database.findOne(req.params.id)
-
-            if(!user) {
-                return res.status(StatusCodes.NOT_FOUND).json({error : 'User not Found'})
+            const userId = req.params.id;
+            const user: UnitUser | null = await database.findOne(userId);
+    
+            if (!user) {
+                return res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' });
             }
-
-            return res.status(StatusCodes.OK).json({user})
+    
+            return res.status(StatusCodes.OK).json({ user });
+        } catch (error) {
+            console.error("Error fetching user:", error);
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal server error' });
         }
-        catch (error) {
-            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({error})
-        }
-
-    })
+    });
 
 
     userRouter.post("/register", async (req : Request, res : Response) => {
@@ -113,30 +108,36 @@
         }
     } )
 
-    userRouter.put("/user/:id", async (req : Request, res : Response) => {
+    userRouter.put("/user/:id", async (req: Request, res: Response) => {
 
         try {
-            const {username, email, password} = req.body
-
-            const getUser = await database.findOne(req.params.id)
-
-            if(!username || !email || !password) {
-                return res.status(401).json({error : 'Please provide all the required parameters..'})
-            }
-
-            if(!getUser) {
-                return res.status(404).json({error : 'No user with this id ${req.params.id}'})  
-            }
-
-            const updateUser = await database.update((req.params.id), req.body)
-
-            return res.status(201).json({updateUser})
+          const { username, email, password } = req.body
+      
+          const user: UnitUser | null = await database.findOne(req.params.id)
+      
+          if (!username || !email || !password) {
+            return res.status(401).json({ error: 'Please provide all the required parameters..' })
+          }
+      
+          if (!user) {
+            return res.status(404).json({ error: `No user with this id ${req.params.id}` })
+          }
+      
+          // Handle potential database update errors (assuming update is not synchronous)
+          await database.update((req.params.id), req.body).catch(error => {
+            console.error(error)
+            return res.status(500).json({ error: 'An error occurred while updating the user' })
+          })
+      
+          // Assuming database.update returns the updated user:
+          const updatedUser = user // Update this with the actual updated user from the database
+      
+          return res.status(201).json({ updatedUser })
+        } catch (error) {
+          console.error(error)
+          return res.status(500).json({ error: 'An unexpected error occurred' })
         }
-        catch (error) {
-            console.log(error)
-            return res.status(500).json({error})
-        }
-    })
+      })
 
     userRouter.delete("/user/:id", async (req : Request, res : Response) => {
 
